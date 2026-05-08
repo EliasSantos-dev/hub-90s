@@ -14,8 +14,12 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
   const rafRef = useRef<number>(0)
   const lastTimeRef = useRef<number>(0)
   const pressedKeys = useRef<Set<string>>(new Set())
+  // Ref keeps onGameOver stable so `start` doesn't need it as a dep
+  const onGameOverRef = useRef(onGameOver)
+  onGameOverRef.current = onGameOver
 
   const start = useCallback(() => {
+    cancelAnimationFrame(rafRef.current)
     const canvas = canvasRef.current
     if (!canvas) return
     stateRef.current = createGameState(canvas.width, canvas.height)
@@ -49,7 +53,7 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
       renderFrame(ctx, state)
 
       if (state.gameStatus === 'gameover') {
-        onGameOver(state)
+        onGameOverRef.current(state)
         return
       }
 
@@ -57,7 +61,7 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
     }
 
     rafRef.current = requestAnimationFrame(loop)
-  }, [canvasRef, onGameOver])
+  }, [canvasRef])
 
   const stop = useCallback(() => {
     cancelAnimationFrame(rafRef.current)
