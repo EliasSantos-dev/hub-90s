@@ -62,7 +62,7 @@ export default function BurgerInvaders({ playerId, gameId, season }: Props) {
   }, [start])
 
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="flex flex-col items-center w-full h-full">
       {/* Game header: SAIR | BURGER INVADERS | ♥♥♥ */}
       <div className="flex items-center justify-between w-full px-4 py-2 bg-black border-b border-gray-800">
         <button
@@ -88,8 +88,12 @@ export default function BurgerInvaders({ playerId, gameId, season }: Props) {
         ref={canvasRef}
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}
-        className="max-w-full"
-        style={{ imageRendering: 'pixelated' }}
+        className="w-auto max-w-full flex-1"
+        style={{
+          imageRendering: 'pixelated',
+          maxHeight: 'calc(100dvh - 196px)',
+          display: 'block',
+        }}
       />
       <TouchControls onAction={touchAction} />
     </div>

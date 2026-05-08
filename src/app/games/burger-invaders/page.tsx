@@ -39,8 +39,8 @@ export default function BurgerInvadersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col items-center">
-      <div className="w-full max-w-[480px]">
+    <div className="h-dvh bg-bg flex flex-col items-center overflow-hidden">
+      <div className="w-full max-w-[480px] h-full flex flex-col">
         {player && game ? (
           <BurgerInvaders
             playerId={player.id}

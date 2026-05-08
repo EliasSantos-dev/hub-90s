@@ -15,7 +15,7 @@ export default function TouchControls({ onAction }: Props) {
   }
 
   return (
-    <div className="flex items-center justify-between px-6 py-4 bg-black border-t border-gray-800 select-none md:hidden">
+    <div className="flex items-center justify-between px-6 py-4 bg-black border-t border-gray-800 select-none">
       <button
         onTouchStart={handleTouch('left')}
         onMouseDown={handleTouch('left')}
