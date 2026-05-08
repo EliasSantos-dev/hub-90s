@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { applyFichaRule, validateFichaRule } from '@/lib/admin/fichas-admin'
+import { applyFichaRule, validateFichaRule } from '@/lib/admin/fichas-utils'
 import type { FichaRule } from '@/types/admin'
 
 describe('applyFichaRule', () => {

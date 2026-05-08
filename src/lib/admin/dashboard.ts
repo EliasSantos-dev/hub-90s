@@ -37,7 +37,7 @@ export async function getDashboardRanking(): Promise<AdminRankingRow[]> {
     .lte('position', 3)
     .order('position')
   if (error || !data) return []
-  return (data as Array<{ position: number; player_id: string; score: number; game_id: string; players: { nickname: string; phone: string } | null; games: { name: string } | null }>)
+  return (data as unknown as Array<{ position: number; player_id: string; score: number; game_id: string; players: { nickname: string; phone: string } | null; games: { name: string } | null }>)
     .map((row) => ({ position: row.position, player_id: row.player_id, nickname: row.players?.nickname ?? '???', phone: row.players?.phone ?? '', score: row.score, game_id: row.game_id }))
 }
 

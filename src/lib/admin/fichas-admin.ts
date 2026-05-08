@@ -3,6 +3,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { FichaRule, FichaTransaction } from '@/types/admin'
+import { validateFichaRule } from './fichas-utils'
 
 function getSupabaseAdmin() {
   const cookieStore = cookies()
@@ -11,17 +12,6 @@ function getSupabaseAdmin() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     { cookies: { getAll() { return cookieStore.getAll() }, setAll(cookiesToSet) { cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } } }
   )
-}
-
-export function applyFichaRule(rules: FichaRule[], orderValue: number): number {
-  const eligible = rules.filter((r) => r.active && r.min_value <= orderValue).sort((a, b) => b.min_value - a.min_value)
-  return eligible[0]?.fichas_amount ?? 0
-}
-
-export function validateFichaRule(min_value: number, fichas_amount: number): string | null {
-  if (min_value < 0) return 'Valor mínimo do pedido não pode ser negativo.'
-  if (fichas_amount <= 0) return 'Quantidade de fichas deve ser maior que zero.'
-  return null
 }
 
 export async function listFichaRules(): Promise<FichaRule[]> {
@@ -53,7 +43,7 @@ export async function listFichaHistory(player_id?: string): Promise<FichaTransac
   if (player_id) query = query.eq('player_id', player_id)
   const { data, error } = await query
   if (error || !data) return []
-  return (data as Array<{ id: string; player_id: string; amount: number; reason: string; ref_id: string | null; created_at: string; players: { nickname: string } | null }>).map((row) => ({
+  return (data as unknown as Array<{ id: string; player_id: string; amount: number; reason: string; ref_id: string | null; created_at: string; players: { nickname: string } | null }>).map((row) => ({
     id: row.id, player_id: row.player_id, player_nickname: row.players?.nickname ?? 'Desconhecido',
     amount: row.amount, reason: row.reason, ref_id: row.ref_id, created_at: row.created_at,
   }))

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { PlayersTable } from '@/components/admin/PlayersTable'
-import { listPlayers, buildCsvFromPlayers } from '@/lib/admin/players'
+import { listPlayers } from '@/lib/admin/players'
+import { buildCsvFromPlayers } from '@/lib/admin/players-utils'
 import type { AdminPlayer } from '@/types/admin'
 
 export default function AdminPlayersPage() {

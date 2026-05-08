@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildPlayerSearchQuery, buildCsvFromPlayers } from '@/lib/admin/players'
+import { buildPlayerSearchQuery, buildCsvFromPlayers } from '@/lib/admin/players-utils'
 import type { AdminPlayer } from '@/types/admin'
 
 describe('buildPlayerSearchQuery', () => {
