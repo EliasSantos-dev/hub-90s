@@ -16,14 +16,17 @@ export default function BurgerInvadersPage() {
 
   useEffect(() => {
     async function init() {
-      const [currentPlayer, { data: gameData }] = await Promise.all([
-        getCurrentPlayer(),
-        supabase.from('games').select('*').eq('slug', 'burger-invaders').single(),
-      ])
-      setPlayer(currentPlayer)
-      setGame(gameData as Game | null)
-      setLoading(false)
-      if (!currentPlayer) setShowAuth(true)
+      try {
+        const [currentPlayer, { data: gameData }] = await Promise.all([
+          getCurrentPlayer(),
+          supabase.from('games').select('*').eq('slug', 'burger-invaders').single(),
+        ])
+        setPlayer(currentPlayer)
+        setGame(gameData as Game | null)
+        if (!currentPlayer) setShowAuth(true)
+      } finally {
+        setLoading(false)
+      }
     }
     init()
   }, [])
