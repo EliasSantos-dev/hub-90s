@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import DiscountBadge from '@/components/ui/DiscountBadge'
 import type { RankingEntry } from '@/hooks/useRanking'
 
@@ -7,16 +8,17 @@ type Props = {
   topN: number
 }
 
-const MEDALS = ['🥇', '🥈', '🥉']
-
 export default function RankingPreview({ entries, discountPct, topN }: Props) {
   const preview = entries.slice(0, 2)
 
   return (
     <section className="px-4 pb-6 max-w-lg mx-auto w-full">
-      <h2 className="font-display text-tertiary text-xl tracking-widest mb-3 text-center">
-        RANKING
-      </h2>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="font-display text-tertiary text-xl tracking-widest">RANKING</h2>
+        <Link href="/ranking" className="font-display text-xs text-gray-400 hover:text-secondary tracking-wider transition-colors">
+          VER TUDO →
+        </Link>
+      </div>
 
       {preview.length === 0 ? (
         <p className="text-center text-gray-500 text-sm">
@@ -30,7 +32,7 @@ export default function RankingPreview({ entries, discountPct, topN }: Props) {
               className="flex items-center justify-between bg-black border border-gray-800 rounded px-3 py-2"
             >
               <div className="flex items-center gap-2">
-                <span className="text-xl">{MEDALS[Number(entry.position) - 1] ?? `#${entry.position}`}</span>
+                <span className="font-display text-gray-400 w-6">#{entry.position}</span>
                 <span className="font-body text-white text-sm">
                   {entry.players?.nickname ?? 'Jogador'}
                 </span>
@@ -47,10 +49,6 @@ export default function RankingPreview({ entries, discountPct, topN }: Props) {
           ))}
         </ul>
       )}
-
-      <p className="text-center text-gray-500 text-xs mt-3">
-        Top {topN} ganham desconto de {discountPct}% no delivery
-      </p>
     </section>
   )
 }
