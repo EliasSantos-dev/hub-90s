@@ -3,7 +3,6 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { createGameState, tickGame, movePlayer, fireBullet, type GameState, type GameAction } from '@/lib/game/engine'
 import { renderFrame } from '@/lib/game/renderer'
-import { keyToAction } from '@/lib/game/input'
 
 type Options = {
   canvasRef: React.RefObject<HTMLCanvasElement>

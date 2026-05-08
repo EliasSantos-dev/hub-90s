@@ -8,7 +8,6 @@ import {
   ENEMY_COLS,
   SCORE_BY_ROW,
   type GameState,
-  type GameAction,
 } from '../engine'
 
 describe('createGameState', () => {

@@ -22,7 +22,7 @@ export function useRanking(gameId: string | null) {
       .order('position', { ascending: true })
       .limit(10)
       .then(({ data }) => {
-        setRanking((data as RankingEntry[]) ?? [])
+        setRanking((data as unknown as RankingEntry[]) ?? [])
         setLoading(false)
       })
   }, [gameId])

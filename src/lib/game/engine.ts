@@ -150,9 +150,10 @@ function rectsOverlap(
 export function tickGame(state: GameState, deltaMs: number): GameState {
   if (state.gameStatus !== 'playing') return state
 
-  let { bullets, enemies, lives, score, hiScore, wave,
-    enemyDir, enemyMoveTimer, enemyMoveInterval,
-    enemyShootTimer, enemyShootInterval, player } = state
+  let { bullets, enemies, enemyMoveTimer, enemyShootTimer } = state
+  const { lives, score, hiScore, wave,
+    enemyDir, enemyMoveInterval,
+    enemyShootInterval, player } = state
 
   bullets = bullets
     .map((b) => ({ ...b, y: b.y + b.vy }))
