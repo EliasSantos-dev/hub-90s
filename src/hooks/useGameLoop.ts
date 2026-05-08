@@ -14,7 +14,7 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
   const rafRef = useRef<number>(0)
   const lastTimeRef = useRef<number>(0)
   const pressedKeys = useRef<Set<string>>(new Set())
-  // Ref keeps onGameOver stable so `start` doesn't need it as a dep
+  const touchPressed = useRef<Set<GameAction>>(new Set())
   const onGameOverRef = useRef(onGameOver)
   onGameOverRef.current = onGameOver
 
@@ -24,6 +24,7 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
     if (!canvas) return
     stateRef.current = createGameState(canvas.width, canvas.height)
     pressedKeys.current.clear()
+    touchPressed.current.clear()
     lastTimeRef.current = 0
 
     function loop(timestamp: number) {
@@ -37,13 +38,13 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
 
       let state = stateRef.current!
 
-      if (pressedKeys.current.has('ArrowLeft') || pressedKeys.current.has('a')) {
+      if (pressedKeys.current.has('ArrowLeft') || pressedKeys.current.has('a') || touchPressed.current.has('left')) {
         state = movePlayer(state, 'left')
       }
-      if (pressedKeys.current.has('ArrowRight') || pressedKeys.current.has('d')) {
+      if (pressedKeys.current.has('ArrowRight') || pressedKeys.current.has('d') || touchPressed.current.has('right')) {
         state = movePlayer(state, 'right')
       }
-      if (pressedKeys.current.has(' ')) {
+      if (pressedKeys.current.has(' ') || touchPressed.current.has('fire')) {
         state = fireBullet(state)
       }
 
@@ -76,11 +77,12 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
     pressedKeys.current.delete(e.key)
   }, [])
 
-  const touchAction = useCallback((action: GameAction) => {
-    if (!stateRef.current) return
-    if (action === 'left') stateRef.current = movePlayer(stateRef.current, 'left')
-    if (action === 'right') stateRef.current = movePlayer(stateRef.current, 'right')
-    if (action === 'fire') stateRef.current = fireBullet(stateRef.current)
+  const touchStart = useCallback((action: GameAction) => {
+    if (action !== 'none') touchPressed.current.add(action)
+  }, [])
+
+  const touchEnd = useCallback((action: GameAction) => {
+    touchPressed.current.delete(action)
   }, [])
 
   useEffect(() => {
@@ -93,5 +95,5 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
     }
   }, [handleKeyDown, handleKeyUp])
 
-  return { start, stop, touchAction, stateRef }
+  return { start, stop, touchStart, touchEnd, stateRef }
 }

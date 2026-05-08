@@ -24,7 +24,7 @@ export default function BurgerInvaders({ playerId, gameId, season }: Props) {
     score: 0, wave: 1, hiScore: 0, lives: 3,
   })
 
-  const { start, touchAction, stateRef } = useGameLoop({
+  const { start, touchStart, touchEnd, stateRef } = useGameLoop({
     canvasRef,
     onGameOver: async (finalState: GameState) => {
       if (playerId) {
@@ -94,7 +94,7 @@ export default function BurgerInvaders({ playerId, gameId, season }: Props) {
         style={{ imageRendering: 'pixelated', aspectRatio: `${CANVAS_WIDTH}/${CANVAS_HEIGHT}` }}
       />
 
-      <TouchControls onAction={touchAction} />
+      <TouchControls onTouchStart={touchStart} onTouchEnd={touchEnd} />
     </div>
   )
 }
