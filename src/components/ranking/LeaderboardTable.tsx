@@ -11,8 +11,6 @@ type Props = {
   loading: boolean
 }
 
-const MEDALS = ['🥇', '🥈', '🥉']
-
 export default function LeaderboardTable({
   entries,
   currentPlayerId,
@@ -39,6 +37,8 @@ export default function LeaderboardTable({
   }
 
   const currentEntry = entries.find((e) => e.player_id === currentPlayerId)
+  const top10 = entries.slice(0, 10)
+  const currentIsInTop10 = top10.some((e) => e.player_id === currentPlayerId)
 
   return (
     <div className="w-full max-w-lg mx-auto px-4">
@@ -47,19 +47,16 @@ export default function LeaderboardTable({
           <span className="font-display text-tertiary text-lg tracking-wider">
             SUA POSIÇÃO: #{currentEntry.position}
           </span>
-          {Number(currentEntry.position) > topN && (
-            <span className="block text-gray-400 text-xs mt-0.5">
-              {Number(currentEntry.position) - topN} posições do top {topN}
-            </span>
-          )}
+          <span className="text-gray-400 text-sm ml-3">
+            {currentEntry.score.toLocaleString('pt-BR')} pts
+          </span>
         </div>
       )}
 
       <ul className="flex flex-col gap-2">
-        {entries.slice(0, 10).map((entry) => {
+        {top10.map((entry) => {
           const isCurrentPlayer = entry.player_id === currentPlayerId
           const hasDiscount = Number(entry.position) <= topN
-          const medal = MEDALS[Number(entry.position) - 1]
 
           return (
             <li
@@ -67,12 +64,14 @@ export default function LeaderboardTable({
               className={`flex items-center justify-between rounded px-3 py-2 border transition-colors ${
                 isCurrentPlayer
                   ? 'border-tertiary bg-tertiary/10'
-                  : 'border-gray-800 bg-black'
+                  : hasDiscount
+                  ? 'border-secondary/40 bg-secondary/5'
+                  : 'border-gray-800 bg-black opacity-70'
               }`}
             >
               <div className="flex items-center gap-3">
-                <span className="text-xl w-7 text-center">
-                  {medal ?? `#${entry.position}`}
+                <span className="font-display text-gray-400 w-7 text-sm">
+                  #{entry.position}
                 </span>
                 <span
                   className={`text-sm font-body ${
@@ -94,6 +93,28 @@ export default function LeaderboardTable({
             </li>
           )
         })}
+
+        {currentEntry && !currentIsInTop10 && (
+          <>
+            <li className="text-center text-gray-600 font-display text-sm py-1">· · ·</li>
+            <li className="flex items-center justify-between rounded px-3 py-2 border border-tertiary bg-tertiary/10">
+              <div className="flex items-center gap-3">
+                <span className="font-display text-gray-400 w-7 text-sm">
+                  #{currentEntry.position}
+                </span>
+                <span className="text-sm font-body text-tertiary font-semibold">
+                  {currentEntry.players?.nickname ?? 'Jogador'}
+                  <span className="text-xs text-gray-400 ml-1">(você)</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-display text-secondary text-lg">
+                  {currentEntry.score.toLocaleString('pt-BR')}
+                </span>
+              </div>
+            </li>
+          </>
+        )}
       </ul>
     </div>
   )

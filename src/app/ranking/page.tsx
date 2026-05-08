@@ -6,14 +6,11 @@ import { getCurrentPlayer } from '@/lib/auth'
 import { supabase, type Player, type Game } from '@/lib/supabase'
 import { useRanking } from '@/hooks/useRanking'
 import LeaderboardTable from '@/components/ranking/LeaderboardTable'
-import TopBar from '@/components/hub/TopBar'
-import { useFichas } from '@/hooks/useFichas'
 
 export default function RankingPage() {
   const [player, setPlayer] = useState<Player | null>(null)
   const [games, setGames] = useState<Game[]>([])
   const [activeGameId, setActiveGameId] = useState<string | null>(null)
-  const fichas = useFichas(player?.id ?? null)
   const activeGame = games.find((g) => g.id === activeGameId) ?? null
   const { ranking, loading } = useRanking(activeGameId)
 
@@ -33,11 +30,20 @@ export default function RankingPage() {
 
   return (
     <div className="min-h-screen bg-bg flex flex-col">
-      <TopBar fichasBalance={fichas} onInsertFicha={() => {}} />
+      {/* Compact header */}
+      <header className="flex items-center justify-between px-4 py-3 border-b border-gray-800 bg-bg sticky top-0 z-40">
+        <Link href="/" className="font-display text-gray-400 hover:text-secondary text-sm tracking-widest transition-colors">
+          ← VOLTAR
+        </Link>
+        <span className="font-display text-secondary text-xl tracking-widest">
+          🏆 RANKING
+        </span>
+        <span className="font-display text-gray-500 text-sm tracking-widest">
+          GLOBAL
+        </span>
+      </header>
 
-      <main className="flex flex-col items-center py-6 gap-6">
-        <h1 className="font-display text-secondary text-4xl tracking-widest">RANKING</h1>
-
+      <main className="flex flex-col items-center py-6 gap-4">
         {games.length > 1 && (
           <div className="flex gap-2">
             {games.map((g) => (
@@ -63,13 +69,6 @@ export default function RankingPage() {
           topN={activeGame?.top_n_discount ?? 3}
           loading={loading}
         />
-
-        <Link
-          href="/"
-          className="font-display text-gray-500 text-sm tracking-wider hover:text-secondary transition-colors"
-        >
-          ← VOLTAR AO HUB
-        </Link>
       </main>
     </div>
   )
