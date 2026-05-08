@@ -62,19 +62,19 @@ export default function BurgerInvaders({ playerId, gameId, season }: Props) {
   }, [start])
 
   return (
-    <div className="flex flex-col items-center w-full h-full">
-      {/* Game header: SAIR | BURGER INVADERS | ♥♥♥ */}
-      <div className="flex items-center justify-between w-full px-4 py-2 bg-black border-b border-gray-800">
+    <div className="flex flex-col w-full">
+      {/* Header vermelho */}
+      <div className="flex items-center justify-between w-full px-4 h-14 bg-primary flex-shrink-0">
         <button
           onClick={() => router.push('/')}
-          className="font-display text-gray-400 hover:text-secondary text-sm tracking-widest transition-colors"
+          className="font-display text-white text-sm tracking-widest"
         >
           ← SAIR
         </button>
-        <span className="font-display text-secondary text-base tracking-widest">
+        <span className="font-display text-white text-base tracking-widest">
           BURGER INVADERS
         </span>
-        <span className="text-primary text-lg tracking-widest">
+        <span className="text-white text-lg tracking-widest">
           {'♥'.repeat(Math.max(0, displayState.lives))}
         </span>
       </div>
@@ -84,17 +84,16 @@ export default function BurgerInvaders({ playerId, gameId, season }: Props) {
         wave={displayState.wave}
         hiScore={displayState.hiScore}
       />
+
+      {/* Canvas escala por largura, mantém proporção */}
       <canvas
         ref={canvasRef}
         width={CANVAS_WIDTH}
         height={CANVAS_HEIGHT}
-        className="w-auto max-w-full flex-1"
-        style={{
-          imageRendering: 'pixelated',
-          maxHeight: 'calc(100dvh - 196px)',
-          display: 'block',
-        }}
+        className="w-full block"
+        style={{ imageRendering: 'pixelated', aspectRatio: `${CANVAS_WIDTH}/${CANVAS_HEIGHT}` }}
       />
+
       <TouchControls onAction={touchAction} />
     </div>
   )

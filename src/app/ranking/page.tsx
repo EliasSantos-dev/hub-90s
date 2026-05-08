@@ -31,14 +31,14 @@ export default function RankingPage() {
   return (
     <div className="min-h-screen bg-bg flex flex-col">
       {/* Compact header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-gray-800 bg-bg sticky top-0 z-40">
-        <Link href="/" className="font-display text-gray-400 hover:text-secondary text-sm tracking-widest transition-colors">
+      <header className="flex items-center justify-between px-4 h-14 bg-primary sticky top-0 z-40 flex-shrink-0">
+        <Link href="/" className="font-display text-white text-sm tracking-widest">
           ← VOLTAR
         </Link>
-        <span className="font-display text-secondary text-xl tracking-widest">
+        <span className="font-display text-white text-xl tracking-widest">
           🏆 RANKING
         </span>
-        <span className="font-display text-gray-500 text-sm tracking-widest">
+        <span className="font-display text-white text-sm tracking-widest">
           GLOBAL
         </span>
       </header>

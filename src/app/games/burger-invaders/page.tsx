@@ -39,28 +39,26 @@ export default function BurgerInvadersPage() {
   }
 
   return (
-    <div className="h-dvh bg-bg flex flex-col items-center overflow-hidden">
-      <div className="w-full max-w-[480px] h-full flex flex-col">
-        {player && game ? (
-          <BurgerInvaders
-            playerId={player.id}
-            gameId={game.id}
-            season={game.season}
-          />
-        ) : (
-          !showAuth && (
-            <div className="flex flex-col items-center justify-center h-64 gap-4">
-              <p className="text-gray-400">Jogo não disponível</p>
-              <button
-                onClick={() => router.push('/')}
-                className="font-display text-secondary border border-secondary px-6 py-2 rounded"
-              >
-                VOLTAR
-              </button>
-            </div>
-          )
-        )}
-      </div>
+    <div className="min-h-screen bg-bg flex flex-col">
+      {player && game ? (
+        <BurgerInvaders
+          playerId={player.id}
+          gameId={game.id}
+          season={game.season}
+        />
+      ) : (
+        !showAuth && (
+          <div className="flex flex-col items-center justify-center flex-1 gap-4">
+            <p className="text-gray-400">Jogo não disponível</p>
+            <button
+              onClick={() => router.push('/')}
+              className="font-display text-secondary border border-secondary px-6 py-2 rounded"
+            >
+              VOLTAR
+            </button>
+          </div>
+        )
+      )}
 
       {showAuth && (
         <AuthModal

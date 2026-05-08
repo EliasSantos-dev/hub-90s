@@ -6,7 +6,7 @@ type Props = {
 
 export default function StatsBar({ score, wave, hiScore }: Props) {
   return (
-    <div className="flex items-center justify-between px-4 py-2 bg-black border-b border-gray-800 w-full">
+    <div className="flex items-center justify-between px-5 h-11 bg-[#111111] w-full flex-shrink-0">
       <div className="flex flex-col items-center min-w-[80px]">
         <span className="text-gray-500 text-xs tracking-widest uppercase">Score</span>
         <span className="font-display text-secondary text-xl tracking-wider">
