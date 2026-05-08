@@ -5,11 +5,11 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 
 const NAV_ITEMS = [
-  { href: '/admin', label: 'DASHBOARD', icon: '📊' },
-  { href: '/admin/players', label: 'PLAYERS', icon: '👥' },
-  { href: '/admin/games', label: 'GAMES', icon: '🎮' },
-  { href: '/admin/fichas', label: 'FICHAS', icon: '🪙' },
-  { href: '/admin/saipos', label: 'SAIPOS', icon: '🔗' },
+  { href: '/admin', label: 'DASHBOARD' },
+  { href: '/admin/players', label: 'PLAYERS' },
+  { href: '/admin/games', label: 'GAMES' },
+  { href: '/admin/fichas', label: 'FICHAS' },
+  { href: '/admin/saipos', label: 'SAIPOS' },
 ]
 
 export function AdminSidebar() {
@@ -35,14 +35,14 @@ export function AdminSidebar() {
         <p className="font-display text-secondary text-xs mt-1 tracking-widest">ADMIN PANEL</p>
       </div>
       <nav className="flex-1 py-4">
-        {NAV_ITEMS.map(({ href, label, icon }) => {
+        {NAV_ITEMS.map(({ href, label }) => {
           const isActive = href === '/admin' ? pathname === '/admin' : pathname.startsWith(href)
           return (
             <Link key={href} href={href}
-              className={`flex items-center gap-3 px-4 py-3 font-display text-sm tracking-widest transition-colors ${
+              className={`flex items-center px-4 py-3 font-display text-sm tracking-widest transition-colors ${
                 isActive ? 'bg-primary text-white' : 'text-[#888] hover:text-white hover:bg-[#1a1a1a]'
               }`}>
-              <span>{icon}</span>{label}
+              {label}
             </Link>
           )
         })}
