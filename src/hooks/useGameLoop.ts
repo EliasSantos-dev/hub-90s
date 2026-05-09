@@ -15,8 +15,14 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
   const lastTimeRef = useRef<number>(0)
   const pressedKeys = useRef<Set<string>>(new Set())
   const touchPressed = useRef<Set<GameAction>>(new Set())
+  const pausedRef = useRef(false)
   const onGameOverRef = useRef(onGameOver)
   onGameOverRef.current = onGameOver
+
+  const setPaused = useCallback((paused: boolean) => {
+    pausedRef.current = paused
+    if (!paused) lastTimeRef.current = 0
+  }, [])
 
   const start = useCallback(() => {
     cancelAnimationFrame(rafRef.current)
@@ -33,28 +39,40 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
       const ctx = canvas.getContext('2d')
       if (!ctx) return
 
-      const delta = lastTimeRef.current ? timestamp - lastTimeRef.current : 16
-      lastTimeRef.current = timestamp
-
       let state = stateRef.current!
 
-      if (pressedKeys.current.has('ArrowLeft') || pressedKeys.current.has('a') || touchPressed.current.has('left')) {
-        state = movePlayer(state, 'left')
-      }
-      if (pressedKeys.current.has('ArrowRight') || pressedKeys.current.has('d') || touchPressed.current.has('right')) {
-        state = movePlayer(state, 'right')
-      }
-      if (pressedKeys.current.has(' ') || touchPressed.current.has('fire')) {
-        state = fireBullet(state)
+      if (!pausedRef.current) {
+        const delta = lastTimeRef.current ? timestamp - lastTimeRef.current : 16
+        lastTimeRef.current = timestamp
+
+        if (pressedKeys.current.has('ArrowLeft') || pressedKeys.current.has('a') || touchPressed.current.has('left')) {
+          state = movePlayer(state, 'left')
+        }
+        if (pressedKeys.current.has('ArrowRight') || pressedKeys.current.has('d') || touchPressed.current.has('right')) {
+          state = movePlayer(state, 'right')
+        }
+        if (pressedKeys.current.has(' ') || touchPressed.current.has('fire')) {
+          state = fireBullet(state)
+        }
+
+        state = tickGame(state, delta)
+        stateRef.current = state
+      } else {
+        // Paused: allow movement but skip tick
+        if (pressedKeys.current.has('ArrowLeft') || pressedKeys.current.has('a') || touchPressed.current.has('left')) {
+          state = movePlayer(state, 'left')
+          stateRef.current = state
+        }
+        if (pressedKeys.current.has('ArrowRight') || pressedKeys.current.has('d') || touchPressed.current.has('right')) {
+          state = movePlayer(state, 'right')
+          stateRef.current = state
+        }
       }
 
-      state = tickGame(state, delta)
-      stateRef.current = state
+      renderFrame(ctx, stateRef.current!)
 
-      renderFrame(ctx, state)
-
-      if (state.gameStatus === 'gameover') {
-        onGameOverRef.current(state)
+      if (!pausedRef.current && stateRef.current!.gameStatus === 'gameover') {
+        onGameOverRef.current(stateRef.current!)
         return
       }
 
@@ -95,5 +113,5 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
     }
   }, [handleKeyDown, handleKeyUp])
 
-  return { start, stop, touchStart, touchEnd, stateRef }
+  return { start, stop, touchStart, touchEnd, setPaused, stateRef }
 }
