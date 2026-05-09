@@ -16,12 +16,17 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
   const pressedKeys = useRef<Set<string>>(new Set())
   const touchPressed = useRef<Set<GameAction>>(new Set())
   const pausedRef = useRef(false)
+  const dragXRef = useRef<number | null>(null)
   const onGameOverRef = useRef(onGameOver)
   onGameOverRef.current = onGameOver
 
   const setPaused = useCallback((paused: boolean) => {
     pausedRef.current = paused
     if (!paused) lastTimeRef.current = 0
+  }, [])
+
+  const setDragX = useCallback((x: number | null) => {
+    dragXRef.current = x
   }, [])
 
   const start = useCallback(() => {
@@ -31,6 +36,7 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
     stateRef.current = createGameState(canvas.width, canvas.height)
     pressedKeys.current.clear()
     touchPressed.current.clear()
+    dragXRef.current = null
     lastTimeRef.current = 0
 
     function loop(timestamp: number) {
@@ -40,6 +46,14 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
       if (!ctx) return
 
       let state = stateRef.current!
+
+      // Touch drag (sempre responsivo, mesmo pausado)
+      if (dragXRef.current !== null) {
+        const newX = Math.max(0, Math.min(state.canvasWidth - state.player.width,
+          dragXRef.current - state.player.width / 2))
+        state = { ...state, player: { ...state.player, x: newX } }
+        stateRef.current = state
+      }
 
       if (!pausedRef.current) {
         const delta = lastTimeRef.current ? timestamp - lastTimeRef.current : 16
@@ -58,7 +72,7 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
         state = tickGame(state, delta)
         stateRef.current = state
       } else {
-        // Paused: allow movement but skip tick
+        // Paused: allow button movement but skip tick
         if (pressedKeys.current.has('ArrowLeft') || pressedKeys.current.has('a') || touchPressed.current.has('left')) {
           state = movePlayer(state, 'left')
           stateRef.current = state
@@ -113,5 +127,5 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
     }
   }, [handleKeyDown, handleKeyUp])
 
-  return { start, stop, touchStart, touchEnd, setPaused, stateRef }
+  return { start, stop, touchStart, touchEnd, setPaused, setDragX, stateRef }
 }
