@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useGameLoop } from '@/hooks/useGameLoop'
 import StatsBar from './StatsBar'
 import TouchControls from './TouchControls'
+import TutorialOverlay from './TutorialOverlay'
 import type { GameState } from '@/lib/game/engine'
 import { saveScore } from '@/lib/scores'
 
@@ -16,6 +17,9 @@ type Props = {
 
 const CANVAS_WIDTH = 480
 const CANVAS_HEIGHT = 520
+const TUTORIAL_KEY = 'bi_tutorial_done'
+
+type TutorialStep = 1 | 2 | 3 | null
 
 export default function BurgerInvaders({ playerId, gameId, season }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -24,7 +28,12 @@ export default function BurgerInvaders({ playerId, gameId, season }: Props) {
     score: 0, wave: 1, hiScore: 0, lives: 3,
   })
 
-  const { start, touchStart, touchEnd, stateRef } = useGameLoop({
+  const [tutorialStep, setTutorialStep] = useState<TutorialStep>(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem(TUTORIAL_KEY)) return null
+    return 1
+  })
+
+  const { start, touchStart: rawTouchStart, touchEnd, setPaused, stateRef } = useGameLoop({
     canvasRef,
     onGameOver: async (finalState: GameState) => {
       if (playerId) {
@@ -41,6 +50,37 @@ export default function BurgerInvaders({ playerId, gameId, season }: Props) {
       )
     },
   })
+
+  const skipTutorial = useCallback(() => {
+    setTutorialStep(null)
+    localStorage.setItem(TUTORIAL_KEY, '1')
+  }, [])
+
+  // Intercept touchStart to advance tutorial steps
+  const touchStart = useCallback((action: import('@/lib/game/engine').GameAction) => {
+    rawTouchStart(action)
+    setTutorialStep((prev) => {
+      if ((action === 'left' || action === 'right') && prev === 1) return 2
+      if (action === 'fire' && prev === 2) return 3
+      return prev
+    })
+  }, [rawTouchStart])
+
+  // Pause/unpause + auto-dismiss step 3
+  useEffect(() => {
+    if (tutorialStep === 1 || tutorialStep === 2) {
+      setPaused(true)
+    } else if (tutorialStep === 3) {
+      setPaused(false)
+      const t = setTimeout(() => {
+        setTutorialStep(null)
+        localStorage.setItem(TUTORIAL_KEY, '1')
+      }, 2000)
+      return () => clearTimeout(t)
+    } else {
+      setPaused(false)
+    }
+  }, [tutorialStep, setPaused])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -60,6 +100,8 @@ export default function BurgerInvaders({ playerId, gameId, season }: Props) {
   useEffect(() => {
     start()
   }, [start])
+
+  const highlight = tutorialStep === 1 ? 'move' : tutorialStep === 2 ? 'fire' : null
 
   return (
     <div className="flex flex-col w-full">
@@ -85,16 +127,25 @@ export default function BurgerInvaders({ playerId, gameId, season }: Props) {
         hiScore={displayState.hiScore}
       />
 
-      {/* Canvas escala por largura, mantém proporção */}
-      <canvas
-        ref={canvasRef}
-        width={CANVAS_WIDTH}
-        height={CANVAS_HEIGHT}
-        className="w-full block"
-        style={{ imageRendering: 'pixelated', aspectRatio: `${CANVAS_WIDTH}/${CANVAS_HEIGHT}` }}
-      />
+      {/* Canvas + overlay do tutorial */}
+      <div className="relative w-full">
+        <canvas
+          ref={canvasRef}
+          width={CANVAS_WIDTH}
+          height={CANVAS_HEIGHT}
+          className="w-full block"
+          style={{ imageRendering: 'pixelated', aspectRatio: `${CANVAS_WIDTH}/${CANVAS_HEIGHT}` }}
+        />
+        {tutorialStep !== null && (
+          <TutorialOverlay step={tutorialStep} onSkip={skipTutorial} />
+        )}
+      </div>
 
-      <TouchControls onTouchStart={touchStart} onTouchEnd={touchEnd} />
+      <TouchControls
+        onTouchStart={touchStart}
+        onTouchEnd={touchEnd}
+        highlight={highlight}
+      />
     </div>
   )
 }
