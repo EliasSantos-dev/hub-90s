@@ -14,6 +14,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://90sburgers.vercel.app'),
   title: '90s Burgers Game Hub',
   description: 'Jogue, suba no ranking e ganhe descontos!',
 }
