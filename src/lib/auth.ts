@@ -31,6 +31,13 @@ export async function signInAnonymouslyAndRegister(
     }
   }
 
+  // Inserir 3 fichas welcome (não bloqueia o cadastro se falhar)
+  await supabase.from('fichas').insert([
+    { player_id: authData.user.id, amount: 1, reason: 'welcome' },
+    { player_id: authData.user.id, amount: 1, reason: 'welcome' },
+    { player_id: authData.user.id, amount: 1, reason: 'welcome' },
+  ])
+
   return { player: player as Player, error: null }
 }
 

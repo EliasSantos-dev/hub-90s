@@ -72,6 +72,33 @@ describe('signInAnonymouslyAndRegister', () => {
     const result = await signInAnonymouslyAndRegister('Tester', '81999990000')
     expect(result.error).toMatch(/já está em uso/)
   })
+
+  it('insere 3 fichas welcome após criar player com sucesso', async () => {
+    const fakeUser = { id: 'uuid-welcome' }
+    const fakePlayer = { id: 'uuid-welcome', nickname: 'NewPlayer', phone: '87900000000', created_at: '2026-05-12' }
+    mockSignInAnonymously.mockResolvedValueOnce({ data: { user: fakeUser }, error: null })
+
+    const mockFichasInsert = vi.fn().mockResolvedValue({ error: null })
+    const mockPlayersInsert = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        single: vi.fn().mockResolvedValue({ data: fakePlayer, error: null }),
+      }),
+    })
+
+    mockFrom.mockImplementation((table: string) => {
+      if (table === 'players') return { insert: mockPlayersInsert }
+      if (table === 'fichas') return { insert: mockFichasInsert }
+      return { insert: vi.fn() }
+    })
+
+    await signInAnonymouslyAndRegister('NewPlayer', '87900000000')
+
+    expect(mockFichasInsert).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ player_id: 'uuid-welcome', amount: 1, reason: 'welcome' }),
+      ])
+    )
+  })
 })
 
 describe('getCurrentPlayer', () => {
