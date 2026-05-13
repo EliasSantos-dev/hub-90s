@@ -167,6 +167,21 @@ export function createGameState(canvasWidth: number, canvasHeight: number): Game
   }
 }
 
+export function continueGameState(prev: GameState): GameState {
+  const wave = prev.wave
+  return {
+    ...createGameState(prev.canvasWidth, prev.canvasHeight),
+    wave,
+    score: prev.score,
+    hiScore: prev.hiScore,
+    enemies: buildEnemies(prev.canvasWidth),
+    lives: 1,
+    formationVX: FORM_SPEED * (1 + (wave - 1) * 0.12),
+    enemyShootInterval: Math.max(800, 2000 - (wave - 1) * 150),
+    diveTimer: Math.max(2000, DIVE_INTERVAL_MIN - (wave - 1) * 200),
+  }
+}
+
 export function movePlayer(state: GameState, direction: 'left' | 'right'): GameState {
   const dx = direction === 'left' ? -PLAYER_SPEED : PLAYER_SPEED
   const newX = Math.max(0, Math.min(state.canvasWidth - state.player.width, state.player.x + dx))

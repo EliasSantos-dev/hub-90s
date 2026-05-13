@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   createGameState,
+  continueGameState,
   tickGame,
   movePlayer,
   fireBullet,
@@ -106,4 +107,41 @@ describe('SCORE_BY_ROW', () => {
   it('row 0 (aliens) = 30', () => expect(SCORE_BY_ROW[0]).toBe(30))
   it('row 1 (burgers) = 20', () => expect(SCORE_BY_ROW[1]).toBe(20))
   it('row 2 (batatas) = 10', () => expect(SCORE_BY_ROW[2]).toBe(10))
+})
+
+describe('continueGameState', () => {
+  it('mantém wave, score e hiScore do estado anterior', () => {
+    const base = createGameState(480, 520)
+    const prev = { ...base, wave: 5, score: 12000, hiScore: 15000 }
+    const next = continueGameState(prev)
+    expect(next.wave).toBe(5)
+    expect(next.score).toBe(12000)
+    expect(next.hiScore).toBe(15000)
+  })
+
+  it('reseta lives para 1', () => {
+    const base = createGameState(480, 520)
+    const next = continueGameState({ ...base, lives: 0 })
+    expect(next.lives).toBe(1)
+  })
+
+  it('reconstrói a grade de inimigos completa', () => {
+    const base = createGameState(480, 520)
+    const noEnemies = { ...base, enemies: base.enemies.map(e => ({ ...e, alive: false })) }
+    const next = continueGameState(noEnemies)
+    expect(next.enemies.filter(e => e.alive).length).toBe(ENEMY_ROWS * ENEMY_COLS)
+  })
+
+  it('escala formationVX com a wave', () => {
+    const base = createGameState(480, 520)
+    const w1 = continueGameState({ ...base, wave: 1 })
+    const w5 = continueGameState({ ...base, wave: 5 })
+    expect(Math.abs(w5.formationVX)).toBeGreaterThan(Math.abs(w1.formationVX))
+  })
+
+  it('define gameStatus como playing', () => {
+    const base = createGameState(480, 520)
+    const next = continueGameState({ ...base, gameStatus: 'gameover' })
+    expect(next.gameStatus).toBe('playing')
+  })
 })
