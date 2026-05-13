@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     ? [{ name: 'Bangers', data: bangersFont, weight: 400 as const }]
     : []
 
-  return new ImageResponse(
+  const response = new ImageResponse(
     (
       <div
         style={{
@@ -68,4 +68,7 @@ export async function GET(req: NextRequest) {
       fonts,
     }
   )
+
+  response.headers.set('Cache-Control', 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400')
+  return response
 }
