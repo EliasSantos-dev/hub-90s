@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useCallback } from 'react'
-import { createGameState, tickGame, movePlayer, fireBullet, type GameState, type GameAction } from '@/lib/game/engine'
+import { createGameState, continueGameState, tickGame, movePlayer, fireBullet, type GameState, type GameAction } from '@/lib/game/engine'
 import { renderFrame } from '@/lib/game/renderer'
 
 type Options = {
@@ -29,11 +29,11 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
     dragXRef.current = x
   }, [])
 
-  const start = useCallback(() => {
+  const start = useCallback((override?: GameState) => {
     cancelAnimationFrame(rafRef.current)
     const canvas = canvasRef.current
     if (!canvas) return
-    stateRef.current = createGameState(canvas.width, canvas.height)
+    stateRef.current = override ?? createGameState(canvas.width, canvas.height)
     pressedKeys.current.clear()
     touchPressed.current.clear()
     dragXRef.current = null
@@ -100,6 +100,10 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
     cancelAnimationFrame(rafRef.current)
   }, [])
 
+  const continueGame = useCallback((prevState: GameState) => {
+    start(continueGameState(prevState))
+  }, [start])
+
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     pressedKeys.current.add(e.key)
     if ([' ', 'ArrowLeft', 'ArrowRight'].includes(e.key)) e.preventDefault()
@@ -127,5 +131,5 @@ export function useGameLoop({ canvasRef, onGameOver }: Options) {
     }
   }, [handleKeyDown, handleKeyUp])
 
-  return { start, stop, touchStart, touchEnd, setPaused, setDragX, stateRef }
+  return { start, stop, touchStart, touchEnd, setPaused, setDragX, continueGame, stateRef }
 }
