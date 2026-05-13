@@ -9,6 +9,8 @@ import TutorialOverlay from './TutorialOverlay'
 import type { GameState } from '@/lib/game/engine'
 import { saveScore } from '@/lib/scores'
 import { playShoot, playKill, playDive, playDie, playWave } from '@/lib/game/audio'
+import { useFichas } from '@/hooks/useFichas'
+import ContinueCountdown from './ContinueCountdown'
 
 type Props = {
   playerId: string | null
@@ -21,7 +23,7 @@ const CANVAS_HEIGHT = 520
 const TUTORIAL_KEY = 'bi_tutorial_done'
 const HISCORE_KEY  = 'bi_hiscore'
 
-type Phase = 'title' | 'ready' | 'playing' | 'gameover'
+type Phase = 'title' | 'ready' | 'playing' | 'continue' | 'gameover'
 type TutorialStep = 1 | 2 | 3 | null
 
 export default function BurgerInvaders({ playerId, gameId, season }: Props) {
@@ -35,13 +37,16 @@ export default function BurgerInvaders({ playerId, gameId, season }: Props) {
   const prevScoreRef   = useRef(0)
   const prevDivingRef  = useRef(0)
   const prevLivesRef   = useRef(3)
+  const [finalScore, setFinalScore] = useState(0)
+  const [finalWave, setFinalWave] = useState(1)
+  const { balance: fichasBalance, invalidate: invalidateFichas } = useFichas(playerId)
 
   const [tutorialStep, setTutorialStep] = useState<TutorialStep>(() => {
     if (typeof window !== 'undefined' && localStorage.getItem(TUTORIAL_KEY)) return null
     return 1
   })
 
-  const { start, touchStart: rawTouchStart, touchEnd, setPaused, setDragX, stateRef } = useGameLoop({
+  const { start, touchStart: rawTouchStart, touchEnd, setPaused, setDragX, continueGame, stateRef } = useGameLoop({
     canvasRef,
     onGameOver: async (finalState: GameState) => {
       playDie()
@@ -50,7 +55,9 @@ export default function BurgerInvaders({ playerId, gameId, season }: Props) {
       if (playerId) {
         await saveScore({ playerId, gameId, score: finalState.score, wave: finalState.wave, season })
       }
-      setPhase('gameover')
+      setFinalScore(finalState.score)
+      setFinalWave(finalState.wave)
+      setPhase('continue')
     },
   })
 
@@ -59,6 +66,27 @@ export default function BurgerInvaders({ playerId, gameId, season }: Props) {
     setTutorialStep(null)
     localStorage.setItem(TUTORIAL_KEY, '1')
   }, [])
+
+  const handleContinue = useCallback(async () => {
+    if (!playerId || !stateRef.current) return
+    const res = await fetch('/api/fichas/debit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: 1, reason: 'continue_jogo' }),
+    })
+    if (!res.ok) return
+    invalidateFichas()
+    continueGame(stateRef.current)
+    prevLivesRef.current = 1
+    prevScoreRef.current = stateRef.current.score
+    setPaused(true)
+    setPhase('ready')
+    setReadyCount(3)
+  }, [playerId, stateRef, invalidateFichas, continueGame, setPaused])
+
+  const handleGameOver = useCallback(() => {
+    router.push(`/games/burger-invaders/game-over?score=${finalScore}&wave=${finalWave}`)
+  }, [router, finalScore, finalWave])
 
   const touchStart = useCallback((action: import('@/lib/game/engine').GameAction) => {
     rawTouchStart(action)
@@ -111,7 +139,7 @@ export default function BurgerInvaders({ playerId, gameId, season }: Props) {
   useEffect(() => {
     if (phase === 'playing' && tutorialStep === null) {
       setPaused(false)
-    } else if (phase === 'title' || phase === 'gameover' || phase === 'ready') {
+    } else if (phase === 'title' || phase === 'gameover' || phase === 'ready' || phase === 'continue') {
       setPaused(true)
     }
   }, [phase, tutorialStep, setPaused])
@@ -231,37 +259,42 @@ export default function BurgerInvaders({ playerId, gameId, season }: Props) {
           <TutorialOverlay step={tutorialStep} onSkip={skipTutorial} />
         )}
 
-        {/* Game Over */}
-        {phase === 'gameover' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/85 gap-5 px-6">
+        {/* Continue — usa ficha para retomar na wave atual */}
+        {phase === 'continue' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 gap-5 px-6">
             <span className="font-display text-primary text-4xl tracking-widest">GAME OVER</span>
             <div className="flex flex-col items-center gap-1">
               <span className="font-display text-secondary text-2xl">
-                {displayState.score.toLocaleString('pt-BR')} PTS
+                {finalScore.toLocaleString('pt-BR')} PTS
               </span>
-              {displayState.score > 0 && displayState.score >= storedHi && storedHi > 0 && (
-                <span className="font-display text-yellow-400 text-sm tracking-wider animate-pulse">
-                  ★ NOVO RECORDE!
+              <span className="font-display text-gray-500 text-xs tracking-wider">
+                WAVE {finalWave}
+              </span>
+            </div>
+
+            {fichasBalance > 0 ? (
+              <div className="flex flex-col items-center gap-2 w-full">
+                <span className="font-display text-white text-sm tracking-wider">
+                  {fichasBalance} FICHA{fichasBalance > 1 ? 'S' : ''} DISPONÍVE{fichasBalance > 1 ? 'IS' : 'L'}
                 </span>
-              )}
-              <span className="text-gray-500 text-xs mt-1">
-                HI: {hiScore.toLocaleString('pt-BR')}
+                <ContinueCountdown
+                  seconds={5}
+                  onContinue={handleContinue}
+                  onExpire={handleGameOver}
+                />
+              </div>
+            ) : (
+              <span className="text-gray-500 text-xs text-center max-w-xs">
+                Sem fichas — faça um pedido para ganhar mais
               </span>
-            </div>
-            <div className="flex gap-4">
-              <button
-                onClick={startGame}
-                className="font-display text-black bg-secondary text-base tracking-widest px-6 py-2 rounded"
-              >
-                JOGAR DE NOVO
-              </button>
-              <button
-                onClick={() => router.push('/')}
-                className="font-display text-gray-400 border border-gray-700 text-base tracking-widest px-6 py-2 rounded"
-              >
-                SAIR
-              </button>
-            </div>
+            )}
+
+            <button
+              onClick={handleGameOver}
+              className="font-display text-gray-400 border border-gray-700 text-base tracking-widest px-6 py-2 rounded"
+            >
+              VER RESULTADO
+            </button>
           </div>
         )}
       </div>
