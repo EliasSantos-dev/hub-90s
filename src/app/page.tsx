@@ -15,7 +15,7 @@ export default function HomePage() {
   const [player, setPlayer] = useState<Player | null>(null)
   const [games, setGames] = useState<Game[]>([])
   const [showAuthModal, setShowAuthModal] = useState(false)
-  const fichasBalance = useFichas(player?.id ?? null)
+  const { balance: fichasBalance } = useFichas(player?.id ?? null)
   const burgerInvadersGame = games.find((g) => g.slug === 'burger-invaders') ?? null
   const { ranking } = useRanking(burgerInvadersGame?.id ?? null)
 

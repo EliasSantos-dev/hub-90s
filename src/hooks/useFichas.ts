@@ -1,40 +1,50 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { getFichaBalance } from '@/lib/fichas'
 
-export function useFichas(playerId: string | null) {
+type FichasResult = { balance: number; invalidate: () => void }
+
+export function useFichas(playerId: string | null): FichasResult {
   const [balance, setBalance] = useState(0)
 
-  useEffect(() => {
-    if (!playerId) {
-      setBalance(0)
-      return
-    }
+  const fetchAndCache = useCallback(async (pid: string) => {
+    const { data } = await supabase.rpc('recharge_fichas', { p_player_id: pid })
+    const b = (data as number) ?? 0
+    setBalance(b)
+    sessionStorage.setItem(`fichas_${pid}`, String(b))
+  }, [])
 
-    getFichaBalance(playerId).then(setBalance)
+  const invalidate = useCallback(() => {
+    if (!playerId) return
+    sessionStorage.removeItem(`fichas_${playerId}`)
+    fetchAndCache(playerId)
+  }, [playerId, fetchAndCache])
+
+  useEffect(() => {
+    if (!playerId) { setBalance(0); return }
+
+    const cached = sessionStorage.getItem(`fichas_${playerId}`)
+    if (cached) {
+      setBalance(Number(cached))
+    } else {
+      fetchAndCache(playerId)
+    }
 
     const channel = supabase
       .channel(`fichas:${playerId}`)
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'fichas',
-          filter: `player_id=eq.${playerId}`,
-        },
+        { event: 'INSERT', schema: 'public', table: 'fichas', filter: `player_id=eq.${playerId}` },
         () => {
-          getFichaBalance(playerId).then(setBalance)
+          sessionStorage.removeItem(`fichas_${playerId}`)
+          fetchAndCache(playerId)
         }
       )
       .subscribe()
 
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [playerId])
+    return () => { supabase.removeChannel(channel) }
+  }, [playerId, fetchAndCache])
 
-  return balance
+  return { balance, invalidate }
 }

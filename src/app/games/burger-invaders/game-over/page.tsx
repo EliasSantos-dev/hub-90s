@@ -16,7 +16,7 @@ function GameOverContent() {
   const [playerId, setPlayerId] = useState<string | null>(null)
   const [nickname, setNickname] = useState('')
   const [game, setGame] = useState<Game | null>(null)
-  const fichas = useFichas(playerId)
+  const { balance: fichas } = useFichas(playerId)
   const { ranking } = useRanking(game?.id ?? null)
 
   useEffect(() => {
